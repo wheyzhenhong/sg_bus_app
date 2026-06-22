@@ -1,0 +1,11 @@
+# Tells Netlify where the serverless functions are, and gives them a clean URL.
+# With this, the browser can call /bus instead of /.netlify/functions/bus
+
+[build]
+  functions = "netlify/functions"
+  publish = "."
+
+[[redirects]]
+  from = "/bus"
+  to = "/.netlify/functions/bus"
+  status = 200

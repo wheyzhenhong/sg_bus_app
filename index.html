@@ -3,331 +3,344 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Bus Timing</title>
+  <title>SG Bus Arrivals</title>
 
-  <!-- PWA: tells the phone this can be installed as an app -->
-  <meta name="theme-color" content="#007AFF">
+  <meta name="theme-color" content="#1a1a2e">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Bus Timing">
-
-  <!-- Manifest is embedded below via JavaScript so everything stays in ONE file -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚌</text></svg>">
+  <meta name="apple-mobile-web-app-title" content="SG Bus">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚍</text></svg>">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     :root {
-      --primary: #007AFF;
-      --warning: #FF9500;
-      --bg: #F5F7FA;
-      --card: #FFFFFF;
-      --text: #1a1a1a;
-      --subtext: #666;
-      --border: #E5E5EA;
+      --bg: #14142b;
+      --surface: #1f1f3d;
+      --surface-2: #2a2a4f;
+      --line: #34345c;
+      --ink: #f2f2fa;
+      --muted: #9a9ac4;
+      --accent: #ffd23f;       /* SG bus-stop sign yellow */
+      --accent-ink: #1a1a2e;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --red: #f87171;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
-      color: var(--text);
-      max-width: 480px;
+      color: var(--ink);
+      max-width: 520px;
       margin: 0 auto;
       min-height: 100vh;
-      padding-bottom: 30px;
+      padding-bottom: 40px;
     }
-    .header {
-      background: var(--primary);
-      color: white;
-      padding: 24px 20px 20px;
+    .top {
+      padding: 28px 20px 18px;
+      border-bottom: 1px solid var(--line);
     }
-    .header h1 { font-size: 26px; margin-bottom: 4px; }
-    .header p { font-size: 14px; opacity: 0.85; }
+    .brand {
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .top h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+    .top p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-    .search-box {
-      margin: 16px;
+    .search-wrap { padding: 18px 20px 6px; }
+    .search {
       display: flex;
       align-items: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 4px 6px 4px 16px;
+      transition: border-color .15s;
     }
-    .search-box input {
+    .search:focus-within { border-color: var(--accent); }
+    .search input {
+      flex: 1;
       border: none;
       outline: none;
-      flex: 1;
-      font-size: 16px;
       background: transparent;
+      color: var(--ink);
+      font-size: 17px;
+      padding: 14px 0;
     }
-
-    .tabs {
-      display: flex;
-      margin: 0 16px;
-      background: var(--card);
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 12px;
-      background: var(--card);
+    .search input::placeholder { color: var(--muted); }
+    .search button {
+      background: var(--accent);
+      color: var(--accent-ink);
       border: none;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--subtext);
-      transition: 0.2s;
-    }
-    .tab-btn.active { background: var(--primary); color: white; }
-
-    .content { display: none; padding: 16px; }
-    .content.show { display: block; }
-    .content h2 { font-size: 18px; margin-bottom: 12px; }
-
-    .bus-card {
-      background: var(--card);
-      padding: 14px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    .card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card-left { display: flex; align-items: center; gap: 12px; }
-    .route-num {
-      background: var(--primary);
-      color: white;
-      padding: 6px 10px;
-      border-radius: 6px;
       font-weight: 700;
-      font-size: 13px;
-      min-width: 44px;
+      font-size: 15px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .search button:active { transform: scale(0.97); }
+    .hint { font-size: 12px; color: var(--muted); padding: 8px 4px 0; line-height: 1.5; }
+
+    .results { padding: 8px 20px; }
+
+    /* status / empty / error */
+    .note {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--muted);
+    }
+    .note .big { font-size: 40px; margin-bottom: 10px; }
+    .note.error { color: var(--red); }
+    .spinner {
+      width: 26px; height: 26px;
+      border: 3px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin: 30px auto;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .result-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin: 14px 2px 12px;
+    }
+    .result-head .title { font-size: 18px; font-weight: 700; }
+    .result-head .sub { font-size: 12px; color: var(--muted); }
+    .refresh {
+      background: var(--surface-2);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* arrival rows */
+    .arr {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .svc {
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-weight: 800;
+      font-size: 15px;
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-width: 56px;
       text-align: center;
     }
-    .route-name { font-weight: 600; font-size: 14px; }
-    .route-dest { font-size: 12px; color: var(--subtext); margin-top: 2px; }
-    .arrival-time { font-size: 18px; font-weight: 700; color: var(--primary); }
-    .arrival-time small { font-size: 12px; font-weight: 500; }
-    .favorite-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px; }
+    .times { flex: 1; display: flex; gap: 18px; }
+    .time .n { font-size: 20px; font-weight: 800; }
+    .time .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .time .n.soon { color: var(--green); }
+    .arr .none { color: var(--muted); font-size: 13px; }
 
-    .stop-list { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
-    .stop-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      font-size: 13px;
+    /* route stop picker */
+    .dir-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--accent);
+      margin: 18px 2px 8px;
+      font-weight: 700;
     }
-    .stop-item .dot { color: var(--primary); margin-right: 8px; }
-    .stop-time { color: var(--subtext); }
-
-    .empty { text-align: center; padding: 40px 20px; color: var(--subtext); }
-    .empty .icon { font-size: 48px; opacity: 0.3; margin-bottom: 12px; }
-
-    .install-banner {
-      display: none;
-      margin: 16px;
-      padding: 14px;
-      background: #fff;
-      border: 1px solid var(--primary);
-      border-radius: 10px;
+    .stop {
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
-    }
-    .install-banner button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
       cursor: pointer;
     }
-    .updated { font-size: 11px; color: var(--subtext); text-align: center; margin-top: 8px; }
+    .stop:active { background: var(--surface-2); }
+    .stop .nm { font-size: 14px; font-weight: 600; }
+    .stop .rd { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stop .code { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .back {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 6px 2px;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>🚌 Bus Timing</h1>
-    <p>Real-time arrivals</p>
+  <div class="top">
+    <div class="brand">Singapore · Live</div>
+    <h1>Bus Arrivals</h1>
+    <p>Real-time timings from LTA</p>
   </div>
 
-  <!-- Install prompt (shows on Android Chrome when installable) -->
-  <div class="install-banner" id="installBanner">
-    <span>📲 Install this app on your phone</span>
-    <button onclick="installApp()">Install</button>
+  <div class="search-wrap">
+    <div class="search">
+      <span style="font-size:18px;">🔎</span>
+      <input id="q" type="text" inputmode="text" autocomplete="off"
+             placeholder="Bus stop code or bus number"
+             enterkeyhint="search">
+      <button id="go">Search</button>
+    </div>
+    <div class="hint">Type a 5-digit stop code (e.g. <b>83139</b>) for live arrivals, or a bus number (e.g. <b>15</b>) to pick your stop.</div>
   </div>
 
-  <div class="search-box">
-    <span style="margin-right:8px;">🔍</span>
-    <input type="text" id="search" placeholder="Search route or stop..." oninput="render()">
+  <div class="results" id="results">
+    <div class="note">
+      <div class="big">🚍</div>
+      <div>Search a bus stop or bus number to begin.</div>
+    </div>
   </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="arrivals" onclick="switchTab('arrivals')">Arrivals</button>
-    <button class="tab-btn" data-tab="routes" onclick="switchTab('routes')">Routes</button>
-    <button class="tab-btn" data-tab="favorites" onclick="switchTab('favorites')">Favorites</button>
-  </div>
-
-  <div id="arrivals" class="content show"></div>
-  <div id="routes" class="content"></div>
-  <div id="favorites" class="content"></div>
 
   <script>
-    // ---------- DATA (replace with a real API later) ----------
-    const buses = {
-      '101': { name: 'Route 101', dest: 'Central → Airport', stops: [
-        ['Central Station', 2], ['Market Square', 7], ['City Hospital', 12], ['Airport Terminal', 22]
-      ]},
-      '205': { name: 'Route 205', dest: 'East Loop', stops: [
-        ['East Station', 5], ['Shopping Mall', 10], ['Park Avenue', 15], ['University', 20]
-      ]},
-      '310': { name: 'Route 310', dest: 'North Express', stops: [
-        ['Downtown Hub', 3], ['North Gate', 8], ['Industrial Area', 18]
-      ]},
-    };
+    const $q = document.getElementById('q');
+    const $go = document.getElementById('go');
+    const $results = document.getElementById('results');
 
-    let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    let expanded = null;
-    let currentTab = 'arrivals';
+    let lastArrivalStop = null;   // for the refresh button
 
-    function switchTab(tab) {
-      currentTab = tab;
-      document.querySelectorAll('.content').forEach(c => c.classList.remove('show'));
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tab).classList.add('show');
-      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-      render();
+    function show(html) { $results.innerHTML = html; }
+    function loading(msg) { show(`<div class="spinner"></div><div class="note">${msg || 'Loading…'}</div>`); }
+    function error(msg) { show(`<div class="note error"><div class="big">⚠️</div><div>${msg}</div></div>`); }
+
+    function loadClass(load) {
+      // LTA load codes: SEA = seats available, SDA = standing, LSD = limited standing
+      return '';
     }
 
-    function toggleFav(id, e) {
-      e.stopPropagation();
-      favorites = favorites.includes(id) ? favorites.filter(f => f !== id) : [...favorites, id];
-      localStorage.setItem('favorites', JSON.stringify(favorites));
-      render();
+    async function call(query) {
+      const res = await fetch(query);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+      return data;
     }
 
-    function toggleExpand(id) {
-      expanded = expanded === id ? null : id;
-      render();
-    }
+    function renderArrivals(data) {
+      lastArrivalStop = data.stopCode;
+      const info = data.stopInfo;
+      const title = info ? info.name : `Stop ${data.stopCode}`;
+      const sub = info ? `${info.road} · ${data.stopCode}` : '';
 
-    function matchesSearch(id, bus, q) {
-      if (!q) return true;
-      q = q.toLowerCase();
-      return id.includes(q) || bus.name.toLowerCase().includes(q) ||
-        bus.dest.toLowerCase().includes(q) ||
-        bus.stops.some(s => s[0].toLowerCase().includes(q));
-    }
-
-    function arrivalCard(id, bus) {
-      return `
-        <div class="bus-card">
-          <div class="card-top">
-            <div class="card-left">
-              <div class="route-num">${id}</div>
-              <div>
-                <div class="route-name">${bus.name}</div>
-                <div class="route-dest">${bus.dest}</div>
-              </div>
-            </div>
-            <div class="arrival-time">${bus.stops[0][1]} <small>min</small></div>
+      let html = `
+        <div class="result-head">
+          <div>
+            <div class="title">${title}</div>
+            <div class="sub">${sub}</div>
           </div>
+          <button class="refresh" id="refresh">↻ Refresh</button>
         </div>`;
+
+      if (!data.services.length) {
+        html += `<div class="note"><div class="big">🌙</div><div>No buses arriving now. Service may not be operating at this hour.</div></div>`;
+      } else {
+        for (const s of data.services) {
+          const times = s.arrivals.length
+            ? s.arrivals.map((m, i) => `
+                <div class="time">
+                  <div class="n ${m <= 2 ? 'soon' : ''}">${m === 0 ? 'Arr' : m}</div>
+                  <div class="l">${i === 0 ? (m === 0 ? 'now' : 'min') : 'then'}</div>
+                </div>`).join('')
+            : `<span class="none">No estimate</span>`;
+          html += `<div class="arr"><div class="svc">${s.service}</div><div class="times">${times}</div></div>`;
+        }
+      }
+      show(html);
+      const r = document.getElementById('refresh');
+      if (r) r.onclick = () => searchStop(data.stopCode);
     }
 
-    function routeCard(id, bus) {
-      const isFav = favorites.includes(id);
-      const isOpen = expanded === id;
-      return `
-        <div class="bus-card" onclick="toggleExpand('${id}')">
-          <div class="card-top">
-            <div class="card-left">
-              <div class="route-num">${id}</div>
+    function renderRoute(data) {
+      let html = `
+        <button class="back" id="back">← New search</button>
+        <div class="result-head">
+          <div><div class="title">Bus ${data.service}</div>
+          <div class="sub">Tap the stop you're waiting at</div></div>
+        </div>`;
+
+      const dirs = Object.keys(data.directions);
+      for (const d of dirs) {
+        if (dirs.length > 1) html += `<div class="dir-label">Direction ${d}</div>`;
+        for (const st of data.directions[d]) {
+          html += `
+            <div class="stop" data-code="${st.stopCode}">
               <div>
-                <div class="route-name">${bus.name}</div>
-                <div class="route-dest">${bus.dest}</div>
+                <div class="nm">${st.name}</div>
+                <div class="rd">${st.road}</div>
               </div>
-            </div>
-            <button class="favorite-btn" onclick="toggleFav('${id}', event)">${isFav ? '⭐' : '☆'}</button>
-          </div>
-          ${isOpen ? `<div class="stop-list">${bus.stops.map(s =>
-            `<div class="stop-item"><span><span class="dot">●</span>${s[0]}</span><span class="stop-time">${s[1]} min</span></div>`
-          ).join('')}</div>` : ''}
-        </div>`;
-    }
-
-    function emptyState(icon, msg) {
-      return `<div class="empty"><div class="icon">${icon}</div><div>${msg}</div></div>`;
-    }
-
-    function render() {
-      const q = document.getElementById('search').value;
-      const entries = Object.entries(buses).filter(([id, bus]) => matchesSearch(id, bus, q));
-
-      // Arrivals
-      document.getElementById('arrivals').innerHTML =
-        '<h2>Next Buses</h2>' +
-        (entries.length ? entries.map(([id, bus]) => arrivalCard(id, bus)).join('')
-                        : emptyState('🚌', 'No buses found'));
-
-      // Routes
-      document.getElementById('routes').innerHTML =
-        `<h2>${q ? 'Search Results' : 'All Routes'}</h2>` +
-        (entries.length ? entries.map(([id, bus]) => routeCard(id, bus)).join('')
-                        : emptyState('🔍', 'No routes match'));
-
-      // Favorites
-      const favEntries = entries.filter(([id]) => favorites.includes(id));
-      document.getElementById('favorites').innerHTML =
-        '<h2>Your Favorites</h2>' +
-        (favEntries.length ? favEntries.map(([id, bus]) => routeCard(id, bus)).join('')
-                           : emptyState('⭐', 'No favorites yet. Tap ☆ on a route to add it!'));
-    }
-
-    render();
-
-    // ---------- PWA INSTALL LOGIC ----------
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').style.display = 'flex';
-    });
-    function installApp() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        document.getElementById('installBanner').style.display = 'none';
+              <div class="code">${st.stopCode}</div>
+            </div>`;
+        }
+      }
+      show(html);
+      document.getElementById('back').onclick = () => { $q.value = ''; $q.focus(); resetHome(); };
+      document.querySelectorAll('.stop').forEach((el) => {
+        el.onclick = () => searchStop(el.dataset.code);
       });
     }
 
-    // ---------- MANIFEST (embedded so it's one file) ----------
+    function resetHome() {
+      show(`<div class="note"><div class="big">🚍</div><div>Search a bus stop or bus number to begin.</div></div>`);
+    }
+
+    async function searchStop(code) {
+      loading('Getting live arrivals…');
+      try {
+        const data = await call(`/bus?action=arrivals&stop=${encodeURIComponent(code)}`);
+        renderArrivals(data);
+      } catch (e) { error(e.message); }
+    }
+
+    async function searchService(service) {
+      loading('Finding stops on this route…');
+      try {
+        const data = await call(`/bus?action=route&service=${encodeURIComponent(service)}`);
+        renderRoute(data);
+      } catch (e) { error(e.message); }
+    }
+
+    function doSearch() {
+      const raw = $q.value.trim();
+      if (!raw) return;
+      // 5 digits => bus stop code. Otherwise => bus service number.
+      if (/^\d{5}$/.test(raw)) {
+        searchStop(raw);
+      } else {
+        searchService(raw.toUpperCase());
+      }
+    }
+
+    $go.onclick = doSearch;
+    $q.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+
+    // ----- PWA install (optional, same as before) -----
     const manifest = {
-      name: "Bus Timing",
-      short_name: "Bus Timing",
-      start_url: ".",
-      display: "standalone",
-      background_color: "#F5F7FA",
-      theme_color: "#007AFF",
-      icons: [{
-        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23007AFF'/><text y='.9em' x='5' font-size='80'>🚌</text></svg>",
-        sizes: "any",
-        type: "image/svg+xml"
-      }]
+      name: 'SG Bus Arrivals', short_name: 'SG Bus', start_url: '.',
+      display: 'standalone', background_color: '#14142b', theme_color: '#14142b',
+      icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2314142b'/><text y='.9em' x='8' font-size='78'>🚍</text></svg>", sizes: 'any', type: 'image/svg+xml' }]
     };
     const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
     const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = manifestURL;
+    link.rel = 'manifest'; link.href = URL.createObjectURL(blob);
     document.head.appendChild(link);
   </script>
-
 </body>
 </html>
